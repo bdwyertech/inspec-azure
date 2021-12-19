@@ -233,6 +233,8 @@ The following is a list of static resources.
 - [azure_sql_databases](docs/resources/azure_sql_databases.md)
 - [azure_sql_server](docs/resources/azure_sql_server.md)
 - [azure_sql_servers](docs/resources/azure_sql_servers.md)
+- [azure_sql_virtual_machine_group_availability_listener](docs/resources/azure_sql_virtual_machine_group_availability_listener.md)
+- [azure_sql_virtual_machine_group_availability_listeners](docs/resources/azure_sql_virtual_machine_group_availability_listeners.md)
 - [azure_storage_account](docs/resources/azure_storage_account.md)
 - [azure_storage_accounts](docs/resources/azure_storage_accounts.md)
 - [azure_storage_account_blob_container](docs/resources/azure_storage_account_blob_container.md)
