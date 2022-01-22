@@ -39,6 +39,9 @@ class AzureConnection
   # @return [Hash] tenant_id, client_id, client_secret, subscription_id
   attr_reader :credentials
 
+  # @return [String] path to the Azure CLI
+  attr_reader :cli_path
+
   # Creates a HTTP client.
   def initialize(client_args)
     # Validate parameter's type.
@@ -150,6 +153,9 @@ class AzureConnection
   def authenticate(resource)
     # Validate the presence of credentials.
     unless @credentials.values.compact.delete_if(&:empty?).size == 4
+      if locate_azure_cli
+        return acquire_token_cli(resource)
+      end
       raise HTTPClientError::MissingCredentials, 'The following must be set in the Environment:'\
         " #{@credentials.keys}.\n"\
         "Missing: #{@credentials.keys.select { |key| @credentials[key].nil? }}"
@@ -247,5 +253,39 @@ class AzureConnection
     else
       raise StandardError, "This method is not supported: #{opts[:method]}"
     end
+  end
+
+  private
+
+  #
+  # Checks if the Azure CLI is installed
+  #
+  # @return [Boolean] Does the az command exist on the path
+  def locate_azure_cli
+    return true if @cli_path
+    exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
+    ENV['PATH'].split(File::PATH_SEPARATOR).each do |path|
+      exts.each do |ext|
+        executable = File.join(path, "az#{ext}")
+        return @cli_path = executable if File.executable?(executable) && !File.directory?(executable)
+      end
+    end
+
+    return nil
+  end
+  
+  #
+  # Acquires a new access token from teh azure CLI
+  #
+  # @return [String] The access token to the desired resource
+  def acquire_token_cli(resource)
+    response_body = JSON.load(`#{cli_path} account get-access-token -o json --resource #{resource}`)
+
+    @@token_data[resource.to_sym][:token] = response_body['accessToken']
+    @@token_data[resource.to_sym][:token_expires_on] = Time.parse(response_body['expiresOn'])
+    @@token_data[resource.to_sym][:token_type] = response_body['tokenType']
+
+  rescue
+    raise StandardError, 'Error acquiring token from the Azure CLI'
   end
 end
