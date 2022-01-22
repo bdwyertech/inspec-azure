@@ -255,7 +255,7 @@ class AzureConnection
     end
   end
 
-  private
+  # private
 
   #
   # Checks if the Azure CLI is installed
